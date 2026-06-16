@@ -12,14 +12,16 @@ Poll Agent ── XSIAM REST API (/public_api/v1/case/search)
     │
     ▼
 For each new/updated case:
-    ├── Triage Agent   → severity, category, false positive likelihood
+    ├── Triage Agent      → severity, category, false positive likelihood
     └── Investigation Agent → root cause, IoCs, MITRE ATT&CK, timeline
+              │
+              ├── Issue enrichment ── Cortex MCP Server (read-only)
               │
               ▼
     Writer Agent → XSIAM Case Discussion + Notepad
               │
               ▼
-    SQLite state store → Dashboard (Streamlit)
+    SQLite state store → Streamlit Dashboard
 ```
 
 The agent applies **NIST SP 800-53**, **NIST CSF 2.0**, and **ISO/IEC 27001** frameworks in its analysis and maps findings to **MITRE ATT&CK** tactics and techniques.
@@ -36,9 +38,45 @@ The agent applies **NIST SP 800-53**, **NIST CSF 2.0**, and **ISO/IEC 27001** fr
 ## Requirements
 
 - Python 3.11+
-- A running [Cortex MCP Server](https://docs.redacted.example.com) (v2.13.1) at `http://localhost:8888/api/v1/stream/mcp`
-- A Cortex XSIAM tenant with API access
+- A Cortex XSIAM tenant with API access (API key with `Responder` role)
+- A running **Cortex MCP Server v2.13.1** (see below)
 - A Google Gemini API key
+
+## Cortex MCP Server
+
+The agent uses the **Cortex MCP Server v2.13.1** for read-only data enrichment — fetching issues, assets, vulnerabilities, and playbooks linked to each case. Case retrieval and all write operations go directly through the XSIAM REST API; the MCP server handles enrichment only.
+
+### What it's used for
+
+| MCP Tool | Purpose |
+|---|---|
+| `get_issues` | Fetch alerts/incidents linked to a case |
+| `get_assets` / `get_asset_by_id` | Asset context for affected hosts |
+| `get_filtered_endpoints` | Endpoint details (OS, status, isolation state) |
+| `get_vulnerabilities` | Known CVEs on affected assets |
+| `get_correlation_rules` | Detection rule definitions that fired |
+| `get_playbook` | Retrieve the playbook associated with a case |
+
+### Transport
+
+The MCP server uses the **Streamable HTTP transport** (MCP protocol `2024-11-05`). Each agent run opens a session via a `POST /initialize` request and receives an `Mcp-Session-Id` header that is passed in all subsequent tool calls.
+
+```
+POST http://localhost:8888/api/v1/stream/mcp
+Accept: application/json, text/event-stream
+```
+
+Responses are Server-Sent Events (SSE) — the agent reads `data:` lines and parses the JSON payload.
+
+### Installation
+
+Download and run the Cortex MCP Server from the Palo Alto Networks marketplace or your XSIAM tenant's integrations page. The default port is `8888`. Once running, set `MCP_SERVER_URL` in your `.env`:
+
+```bash
+MCP_SERVER_URL=http://localhost:8888/api/v1/stream/mcp
+```
+
+If the MCP server is unavailable at startup, the agent logs a warning and continues — case triage and investigation will proceed without issue enrichment.
 
 ## Setup
 
@@ -77,7 +115,7 @@ MAX_CASES_PER_POLL=50
 
 # Case filters (all optional)
 CASE_STATUSES=New,Under Investigation
-CASE_SEVERITIES=high,critical
+CASE_SEVERITIES=low,medium,high,critical
 CASE_DOMAIN=SECURITY
 CASE_ASSIGNEE_EMAIL=analyst@company.com   # server-side filter by email
 CASE_ASSIGNEE_NAME=Jane Smith             # server-side filter by display name
@@ -99,7 +137,7 @@ python main.py --run-once
 # Process a specific case (writes to XSIAM)
 python main.py --case-id 88921
 
-# Dry run — prints findings, no XSIAM write
+# Dry run — prints findings to stdout, no XSIAM write
 python main.py --case-id 88921 --dry-run
 ```
 
@@ -109,9 +147,7 @@ python main.py --case-id 88921 --dry-run
 python -m streamlit run dashboard/app.py
 ```
 
-Opens at `http://localhost:8501`. Shows agent status, active filters, per-severity case counts, a sortable case table, and expandable investigation findings. Auto-refreshes every 30 seconds.
-
-![Dashboard](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)
+Opens at `http://localhost:8501`. Shows agent status, active filters, per-severity case counts, a case table with colour-coded severity badges, and expandable investigation findings per case. Auto-refreshes every 30 seconds and picks up `.env` filter changes live.
 
 ## Architecture
 
@@ -119,7 +155,7 @@ Opens at `http://localhost:8501`. Shows agent status, active filters, per-severi
 |---|---|
 | LLM | Gemini 2.5 Flash (dynamic thinking) |
 | Case retrieval | XSIAM REST API `/public_api/v1/case/search` |
-| Issue enrichment | Cortex MCP Server v2.13.1 (12 read-only tools) |
+| Issue/asset enrichment | Cortex MCP Server v2.13.1 (Streamable HTTP) |
 | Write back | XSIAM REST API `/public_api/v1/incidents/update_incident` |
 | State store | SQLite |
 | Dashboard | Streamlit |
@@ -135,6 +171,7 @@ Each processed case receives a structured markdown comment posted to the XSIAM C
 - MITRE ATT&CK mapping (tactic + technique)
 - Containment, eradication, and recovery recommendations
 - ISO 27001 Annex A control references
+- NIST CSF function alignment
 
 A condensed version is also written to the Case Notepad for quick reference.
 
@@ -142,4 +179,4 @@ A condensed version is also written to the Case Notepad for quick reference.
 
 - Never commit `.env` — it is gitignored
 - The agent has read + comment/notepad write access only; it cannot close, reassign, or modify case status
-- Raw case data (alerts, logs, IoCs) is only logged at DEBUG level
+- Raw case data (alerts, logs, IoCs) is only logged at DEBUG level — do not set `LOG_LEVEL=DEBUG` in production

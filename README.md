@@ -122,6 +122,19 @@ CASE_LOOKBACK_HOURS=
 
 > **Note:** The XSIAM API key must have the `Responder` role to write case comments and notepad entries.
 
+### How filtering works
+
+Every case filter is **opt-in** — if a variable is blank or omitted, that filter is not applied and no restriction is placed on that field. This means:
+
+- **To process all cases** regardless of assignee: leave `CASE_ASSIGNEE_EMAIL` and `CASE_ASSIGNEE_NAME` blank
+- **To process only your cases**: set `CASE_ASSIGNEE_EMAIL` to your XSIAM user email
+- **To process all severities**: leave `CASE_SEVERITIES` blank
+- **To remove the time window**: leave both `CASE_LAST_UPDATE_HOURS` and `CASE_LOOKBACK_HOURS` blank
+
+The only filter with a built-in default is `CASE_STATUSES` — if not set at all, it defaults to `New,Under Investigation`. Set it explicitly to a different value, or leave it blank to process cases of any status.
+
+All filters are re-evaluated on every poll cycle, so changes to `.env` take effect at the next tick without restarting the agent.
+
 ## Usage
 
 ```bash

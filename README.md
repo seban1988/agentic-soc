@@ -97,30 +97,27 @@ python -c "from scheduler.state import init_db; init_db()"
 All configuration is via `.env`:
 
 ```bash
-# Google Gemini
 GEMINI_API_KEY=<your-key>
-GEMINI_MODEL=gemini-2.5-flash
 
-# Cortex XSIAM — use the api-* subdomain
 CORTEX_URL=https://api-<tenant>.xdr.us.redacted.example.com
 CORTEX_API_KEY=<api-key-value>
 CORTEX_API_ID=<api-key-id>
 
-# MCP server
-MCP_SERVER_URL=http://localhost:8888/api/v1/stream/mcp
+GEMINI_MODEL=gemini-2.5-flash
 
-# Agent behavior
+MCP_SERVER_URL=http://localhost:8888/api/v1/stream/mcp
+STATE_DB_PATH=./data/processed_cases.db
 POLL_INTERVAL_SECONDS=300
 MAX_CASES_PER_POLL=50
+LOG_LEVEL=INFO
 
-# Case filters (all optional)
 CASE_STATUSES=New,Under Investigation
-CASE_SEVERITIES=low,medium,high,critical
+CASE_SEVERITIES=low, medium, high, critical
 CASE_DOMAIN=SECURITY
-CASE_ASSIGNEE_EMAIL=analyst@company.com   # server-side filter by email
-CASE_ASSIGNEE_NAME=Jane Smith             # server-side filter by display name
-CASE_LAST_UPDATE_HOURS=24                 # cases modified in last N hours
-CASE_LOOKBACK_HOURS=48                    # cases created in last N hours
+CASE_LAST_UPDATE_HOURS=24
+CASE_ASSIGNEE_EMAIL=analyst@company.com
+CASE_ASSIGNEE_NAME=
+CASE_LOOKBACK_HOURS=
 ```
 
 > **Note:** The XSIAM API key must have the `Responder` role to write case comments and notepad entries.

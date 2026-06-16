@@ -103,7 +103,7 @@ CORTEX_URL=https://api-<tenant>.xdr.us.redacted.example.com
 CORTEX_API_KEY=<api-key-value>
 CORTEX_API_ID=<api-key-id>
 
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash
 
 MCP_SERVER_URL=http://localhost:8888/api/v1/stream/mcp
 STATE_DB_PATH=./data/processed_cases.db

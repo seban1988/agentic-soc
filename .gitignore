@@ -1,6 +1,10 @@
 # Secrets
 .env
 
+# API reference docs
+*.json
+*.yaml
+
 # Runtime state
 data/
 

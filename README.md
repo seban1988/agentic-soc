@@ -163,7 +163,7 @@ Opens at `http://localhost:8501`. Shows agent status, active filters, per-severi
 
 | Component | Technology |
 |---|---|
-| LLM | Gemini 2.5 Flash (dynamic thinking) |
+| LLM | Gemini 3.5 Flash (dynamic thinking) |
 | Case retrieval | XSIAM REST API `/public_api/v1/case/search` |
 | Issue/asset enrichment | Cortex MCP Server v2.13.1 (Streamable HTTP) |
 | Write back | XSIAM REST API `/public_api/v1/incidents/update_incident` |

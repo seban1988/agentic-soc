@@ -61,8 +61,8 @@ GEMINI_API_KEY=<your-gemini-api-key>
 GEMINI_MODEL=gemini-2.5-flash   # model used by triage + investigation agents
 
 # Cortex XSIAM tenant — used by agent/cortex_api.py for direct REST writes
-# (CORTEX_URL must be the api-* subdomain, e.g. https://api-<tenant>.xdr.us.redacted.example.com)
-CORTEX_URL=https://api-<tenant>.xdr.us.redacted.example.com
+# (CORTEX_URL is your XSIAM API URL)
+CORTEX_URL=https://<your-xsiam-api-url>
 CORTEX_API_KEY=<api-key-value>
 CORTEX_API_ID=<api-key-id-integer>
 

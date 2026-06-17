@@ -70,7 +70,7 @@ Responses are Server-Sent Events (SSE) — the agent reads `data:` lines and par
 
 ### Installation
 
-Download and run the Cortex MCP Server from the Palo Alto Networks marketplace or your XSIAM tenant's integrations page. The default port is `8888`. Once running, set `MCP_SERVER_URL` in your `.env`:
+Download and run the Cortex MCP Server from your XSIAM tenant's integrations page. The default port is `8888`. Once running, set `MCP_SERVER_URL` in your `.env`:
 
 ```bash
 MCP_SERVER_URL=http://localhost:8888/api/v1/stream/mcp
@@ -99,7 +99,7 @@ All configuration is via `.env`:
 ```bash
 GEMINI_API_KEY=<your-key>
 
-CORTEX_URL=https://api-<tenant>.xdr.us.redacted.example.com
+CORTEX_URL=https://<your-xsiam-api-url>
 CORTEX_API_KEY=<api-key-value>
 CORTEX_API_ID=<api-key-id>
 
